@@ -1,0 +1,7 @@
+node_modules/
+# the build output (build/, and its copies at the root): attached to each GitHub release, never committed
+/build/
+/main.js
+/styles.css
+*.log
+.DS_Store

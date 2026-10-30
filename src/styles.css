@@ -1,0 +1,114 @@
+/* Plain Deck inside Obsidian. The core's study UI (@plaindeck/core/app.css, bundled before this file) on
+   the vault's theme: every --fc-* variable maps onto one of Obsidian's, so light and dark themes, accent
+   colours and community themes apply. Card content is rendered by Obsidian (`markdown-rendered`), with the
+   note's own typography. */
+
+.workspace-leaf-content[data-type='plain-deck-study'] > .view-content.fc-obsidian {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+.fc-obsidian .fc-root {
+  --fc-canvas: var(--background-primary);
+  --fc-panel: var(--background-secondary);
+  --fc-raised: var(--background-secondary-alt);
+  --fc-line: var(--background-modifier-border);
+  --fc-text: var(--text-normal);
+  --fc-strong: var(--text-normal);
+  --fc-title: var(--text-normal);
+  --fc-muted: var(--text-muted);
+  --fc-button: var(--interactive-normal);
+  --fc-button-hover: var(--interactive-hover);
+  --fc-button-line: var(--background-modifier-border);
+  --fc-accent: var(--interactive-accent);
+  --fc-primary: var(--interactive-accent);
+  --fc-primary-hover: var(--interactive-accent-hover);
+  --fc-on-primary: var(--text-on-accent);
+  --fc-code: var(--code-background);
+  --fc-code-inline: var(--code-background);
+  --fc-subtle: var(--background-modifier-hover);
+  --fc-warn: var(--text-warning);
+  --fc-new: var(--color-blue);
+  --fc-learning: var(--color-red);
+  --fc-review: var(--color-green);
+  --fc-again: var(--color-red);
+  --fc-hard: var(--color-yellow);
+  --fc-good: var(--color-green);
+  --fc-easy: var(--color-blue);
+  --fc-font: var(--font-interface);
+  --fc-text-font: var(--font-text);
+  --fc-text-size: var(--font-text-size);
+  --fc-mono: var(--font-monospace);
+}
+
+/* Obsidian styles every button; inside the study UI the core's own rules win, without Obsidian's shadow */
+.fc-obsidian .fc-root button {
+  box-shadow: none;
+  height: auto;
+}
+.fc-obsidian .fc-root button.fc-rate {
+  height: auto;
+}
+
+/* the front is one line of Markdown: Obsidian renders it as a paragraph */
+.fc-obsidian .fc-front .markdown-rendered > p {
+  margin: 0;
+}
+.fc-obsidian .fc-md.markdown-rendered,
+.fc-obsidian .fc-md .markdown-rendered {
+  user-select: text;
+}
+.fc-obsidian .fc-scroll {
+  user-select: text;
+}
+
+/* What sits over the bottom of the view. PHONE-NAVBAR: on phones, Obsidian's floating navigation bar (and the
+   home indicator), which Obsidian measures in --view-bottom-spacing. STATUS-BAR: on the desktop, the status
+   bar, fixed over the bottom-right corner of the window (27px high with the default font), so over this view
+   whenever it is the rightmost pane. The ratings and the end of the deck list stay above both; the bar's
+   background still reaches the bottom edge. */
+.fc-obsidian {
+  --fc-bottom-space: 30px;
+}
+.is-mobile .fc-obsidian {
+  --fc-bottom-space: var(--view-bottom-spacing, 0px);
+}
+.fc-obsidian .fc-bar {
+  padding-bottom: calc(12px + var(--fc-bottom-space));
+}
+.fc-obsidian .fc-library,
+.fc-obsidian .fc-done {
+  padding-bottom: calc(32px + var(--fc-bottom-space));
+}
+
+/* a picture never pushes the answer and the ratings off the screen */
+.fc-obsidian .fc-scroll img {
+  max-height: 50vh;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* the empty library (view.ts emptyLibrary) */
+.fc-obsidian-empty {
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.fc-obsidian-empty h2 {
+  margin: 0;
+  color: var(--text-normal);
+}
+.fc-obsidian-empty p {
+  margin: 0;
+}
+
+/* the settings tab: a value that cannot be used */
+input.fc-invalid {
+  border-color: var(--text-error) !important;
+}

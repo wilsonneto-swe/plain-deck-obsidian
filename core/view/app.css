@@ -1,0 +1,679 @@
+/* The study UI (view/app.ts), scoped under .fc-root. The palette is Mark Mind View's dark navy chrome; the
+   three counts use Anki's colours (new blue, learning red, review green). Every colour and font is a --fc-*
+   variable on .fc-root, so a shell can re-theme it (the Obsidian plugin maps them onto the vault's theme).
+   The root fills its container (position: absolute; inset: 0), so a shell gives it a positioned box and
+   nothing else. The layout is fluid at any width; below 600px of ROOT width (a container query: a phone, or a
+   narrow Obsidian pane) the paddings tighten and the key hints go. */
+
+.fc-root {
+  --fc-canvas: #0e1526;
+  --fc-panel: #141c30;
+  --fc-raised: #18223a;
+  --fc-line: #243049;
+  --fc-text: #dce1ea;
+  --fc-strong: #eef1f7;
+  --fc-muted: #9fb0d0;
+  --fc-button: #22304a;
+  --fc-button-line: #33425f;
+  --fc-button-hover: #2c3c5c;
+  --fc-accent: #5b9bff;
+  --fc-new: #5b9bff;
+  --fc-learning: #f07a86;
+  --fc-review: #7cc45a;
+  --fc-again: #e0505f;
+  --fc-hard: #e2b53e;
+  --fc-good: #7cc45a;
+  --fc-easy: #5b9bff;
+  --fc-code: #0b1120;
+  --fc-code-inline: rgba(255, 255, 255, 0.07);
+  --fc-subtle: rgba(255, 255, 255, 0.06);
+  --fc-title: #fff;
+  --fc-primary: #3b5fa8;
+  --fc-primary-hover: #4a6fba;
+  --fc-on-primary: #eef1f7;
+  --fc-warn: #e2b53e;
+  --fc-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fc-text-font: var(--fc-font);
+  --fc-text-size: 16px;
+  --fc-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  container: fc-root / inline-size;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--fc-canvas);
+  color: var(--fc-text);
+  font-family: var(--fc-font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  outline: none;
+}
+.fc-root [hidden] {
+  display: none !important;
+}
+.fc-root > section {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fc-root button {
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--fc-strong);
+  background: var(--fc-button);
+  border: 1px solid var(--fc-button-line);
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.fc-root button:hover {
+  background: var(--fc-button-hover);
+}
+.fc-root button:focus-visible {
+  outline: 2px solid var(--fc-accent);
+  outline-offset: 1px;
+}
+.fc-root button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.fc-root button:disabled:hover {
+  background: var(--fc-button);
+}
+.fc-root button.fc-primary {
+  color: var(--fc-on-primary);
+  background: var(--fc-primary);
+  border-color: var(--fc-accent);
+}
+.fc-root button.fc-primary:hover {
+  background: var(--fc-primary-hover);
+}
+.fc-root button.fc-primary:disabled:hover {
+  background: var(--fc-primary);
+}
+.fc-root button.fc-plain {
+  background: transparent;
+  border-color: transparent;
+  color: var(--fc-muted);
+}
+.fc-root button.fc-plain:hover {
+  background: var(--fc-button);
+  color: var(--fc-strong);
+}
+.fc-root kbd {
+  font: 11px var(--fc-mono);
+  color: var(--fc-muted);
+  background: var(--fc-subtle);
+  border: 1px solid var(--fc-button-line);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+/* ---- the three counts ---- */
+.fc-counts {
+  display: inline-flex;
+  gap: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.fc-count {
+  min-width: 1.4em;
+  text-align: right;
+}
+.fc-count-new {
+  color: var(--fc-new);
+}
+.fc-count-learning {
+  color: var(--fc-learning);
+}
+.fc-count-review {
+  color: var(--fc-review);
+}
+.fc-count.fc-current {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
+}
+.fc-counts-big {
+  font-size: 18px;
+  gap: 14px;
+}
+
+/* ---- library ---- */
+.fc-library {
+  overflow: auto;
+  padding: 28px 24px 40px;
+}
+.fc-library > * {
+  width: 100%;
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+.fc-lib-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.fc-lib-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.fc-lib-title h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 650;
+  color: var(--fc-title);
+}
+.fc-lib-summary {
+  margin: 2px 0 0;
+  color: var(--fc-muted);
+  font-size: 13px;
+}
+.fc-decks {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fc-deck {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  background: var(--fc-panel);
+  border: 1px solid var(--fc-line);
+  border-radius: 10px;
+}
+.fc-deck-names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fc-deck-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--fc-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fc-deck-path {
+  font-size: 12px;
+  color: var(--fc-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fc-deck-note {
+  font-size: 12px;
+  color: var(--fc-warn);
+}
+.fc-empty {
+  text-align: center;
+  color: var(--fc-muted);
+  padding: 48px 16px;
+}
+
+/* ---- settings ---- */
+.fc-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px 18px;
+  padding: 14px 16px;
+  margin: 0 auto 18px;
+  background: var(--fc-panel);
+  border: 1px solid var(--fc-line);
+  border-radius: 10px;
+}
+.fc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fc-field-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fc-strong);
+}
+.fc-field-help {
+  font-size: 12px;
+  color: var(--fc-muted);
+}
+.fc-field input {
+  font: inherit;
+  font-size: 13px;
+  color: var(--fc-strong);
+  background: var(--fc-canvas);
+  border: 1px solid var(--fc-button-line);
+  border-radius: 6px;
+  padding: 5px 8px;
+  max-width: 220px;
+}
+.fc-field input:focus-visible {
+  outline: 2px solid var(--fc-accent);
+  outline-offset: 0;
+}
+.fc-field input.fc-invalid {
+  border-color: var(--fc-again);
+}
+
+/* ---- study ---- */
+.fc-study-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--fc-line);
+  background: var(--fc-panel);
+}
+.fc-deck-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fc-muted);
+  font-size: 13px;
+}
+.fc-spacer {
+  flex: 1 1 0;
+}
+.fc-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 40px 24px 32px;
+  cursor: default;
+}
+.fc-card {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.fc-front {
+  margin: 0 0 16px;
+  font-size: 24px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--fc-title);
+  overflow-wrap: anywhere;
+}
+.fc-divider {
+  border: 0;
+  border-top: 1px solid var(--fc-line);
+  margin: 24px 0;
+}
+.fc-bar {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--fc-line);
+  background: var(--fc-panel);
+}
+.fc-root button.fc-show {
+  min-width: 260px;
+  padding: 12px 24px;
+  font-size: 15px;
+}
+.fc-ratings {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  max-width: 560px;
+}
+.fc-root button.fc-rate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 10px;
+  border-top: 3px solid var(--fc-button-line);
+}
+.fc-rate .fc-ivl {
+  font-size: 12px;
+  color: var(--fc-muted);
+  font-variant-numeric: tabular-nums;
+}
+.fc-rate .fc-rate-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+.fc-root button.fc-again {
+  border-top-color: var(--fc-again);
+}
+.fc-root button.fc-hard {
+  border-top-color: var(--fc-hard);
+}
+.fc-root button.fc-good {
+  border-top-color: var(--fc-good);
+}
+.fc-root button.fc-easy {
+  border-top-color: var(--fc-easy);
+}
+.fc-message {
+  flex: 0 0 auto;
+  min-height: 0;
+  text-align: center;
+  color: var(--fc-warn);
+  font-size: 13px;
+}
+.fc-message:not(:empty) {
+  padding: 6px 12px;
+}
+
+/* ---- done ---- */
+.fc-done {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  gap: 6px;
+}
+.fc-done h2 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  color: var(--fc-title);
+}
+.fc-done p {
+  margin: 0;
+  color: var(--fc-muted);
+  max-width: 520px;
+}
+.fc-done-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ---- card content (Markdown) ---- */
+.fc-md {
+  font-family: var(--fc-text-font);
+  font-size: var(--fc-text-size);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+/* every part of a card is painted into a .fc-md-body holder (PAINT-ONCE in app.ts); the element rules below
+   style what the core's own renderer paints (.fc-md-core): a shell's renderer brings its own typography */
+.fc-md-body > :first-child {
+  margin-top: 0;
+}
+.fc-md-body > :last-child {
+  margin-bottom: 0;
+}
+.fc-front .fc-md-body > p {
+  margin: 0;
+}
+.fc-md-core p,
+.fc-md-core ul,
+.fc-md-core ol,
+.fc-md-core pre,
+.fc-md-core blockquote,
+.fc-md-core .fc-table,
+.fc-md-core .fc-math-block {
+  margin: 0 0 14px;
+}
+.fc-md-core h1,
+.fc-md-core h2,
+.fc-md-core h3,
+.fc-md-core h4,
+.fc-md-core h5,
+.fc-md-core h6 {
+  margin: 20px 0 8px;
+  line-height: 1.3;
+  color: var(--fc-strong);
+}
+.fc-md-core h1 {
+  font-size: 22px;
+}
+.fc-md-core h2 {
+  font-size: 19px;
+}
+.fc-md-core h3 {
+  font-size: 17px;
+}
+.fc-md-core h4,
+.fc-md-core h5,
+.fc-md-core h6 {
+  font-size: 15px;
+}
+.fc-md-core ul,
+.fc-md-core ol {
+  padding-left: 1.5em;
+}
+.fc-md-core li + li {
+  margin-top: 2px;
+}
+.fc-md-core li > ul,
+.fc-md-core li > ol,
+.fc-md-core li > p {
+  margin: 4px 0;
+}
+.fc-md-core li.fc-task {
+  list-style: none;
+  margin-left: -1.3em;
+}
+.fc-box {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  vertical-align: -1px;
+  border: 1.5px solid var(--fc-muted);
+  border-radius: 3px;
+}
+.fc-box-done {
+  background: var(--fc-accent);
+  border-color: var(--fc-accent);
+}
+.fc-md-core code,
+.fc-deck-title code {
+  font-family: var(--fc-mono);
+  font-size: 0.88em;
+  background: var(--fc-code-inline);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.fc-md-core pre {
+  background: var(--fc-code);
+  border: 1px solid var(--fc-line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow: auto;
+  line-height: 1.45;
+}
+.fc-md-core pre code {
+  background: none;
+  padding: 0;
+  font-size: 13.5px;
+  white-space: pre;
+}
+.fc-md-core blockquote {
+  border-left: 3px solid var(--fc-button-line);
+  padding: 2px 0 2px 14px;
+  color: var(--fc-muted);
+}
+.fc-md-core blockquote.fc-callout {
+  --fc-callout: var(--fc-accent);
+  border-left-color: var(--fc-callout);
+  background: rgba(91, 155, 255, 0.08);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  color: var(--fc-text);
+}
+.fc-callout-title {
+  font-weight: 600;
+  color: var(--fc-callout);
+  margin-bottom: 4px;
+}
+.fc-md-core .fc-callout-tip,
+.fc-md-core .fc-callout-success,
+.fc-md-core .fc-callout-check,
+.fc-md-core .fc-callout-done,
+.fc-md-core .fc-callout-hint,
+.fc-md-core .fc-callout-important {
+  --fc-callout: var(--fc-good);
+  background: rgba(124, 196, 90, 0.08);
+}
+.fc-md-core .fc-callout-warning,
+.fc-md-core .fc-callout-caution,
+.fc-md-core .fc-callout-attention,
+.fc-md-core .fc-callout-question,
+.fc-md-core .fc-callout-help,
+.fc-md-core .fc-callout-faq {
+  --fc-callout: var(--fc-hard);
+  background: rgba(226, 181, 62, 0.08);
+}
+.fc-md-core .fc-callout-danger,
+.fc-md-core .fc-callout-error,
+.fc-md-core .fc-callout-bug,
+.fc-md-core .fc-callout-failure,
+.fc-md-core .fc-callout-fail,
+.fc-md-core .fc-callout-missing {
+  --fc-callout: var(--fc-again);
+  background: rgba(224, 80, 95, 0.08);
+}
+.fc-md-core hr {
+  border: 0;
+  border-top: 1px solid var(--fc-line);
+  margin: 18px 0;
+}
+.fc-table {
+  overflow-x: auto;
+}
+.fc-md-core table {
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+.fc-md-core th,
+.fc-md-core td {
+  border: 1px solid var(--fc-line);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+.fc-md-core th {
+  background: var(--fc-panel);
+  color: var(--fc-strong);
+}
+.fc-root a {
+  color: var(--fc-accent);
+  text-decoration: none;
+}
+.fc-root a:hover {
+  text-decoration: underline;
+}
+.fc-root mark {
+  background: rgba(226, 181, 62, 0.35);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+.fc-root strong {
+  color: var(--fc-strong);
+}
+.fc-wiki {
+  color: var(--fc-accent);
+  border-bottom: 1px dotted var(--fc-accent);
+}
+.fc-tag {
+  font-size: 0.85em;
+  color: var(--fc-accent);
+  background: rgba(91, 155, 255, 0.12);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.fc-embed {
+  font-size: 0.85em;
+  color: var(--fc-muted);
+  border: 1px dashed var(--fc-button-line);
+  border-radius: 6px;
+  padding: 1px 8px;
+}
+.fc-embed::before {
+  content: 'image: ';
+}
+.fc-math {
+  font-family: var(--fc-mono);
+  font-size: 0.9em;
+  color: var(--fc-strong);
+}
+.fc-math-block {
+  display: block;
+  text-align: center;
+  white-space: pre-wrap;
+}
+
+/* ---- phones ---- */
+@container fc-root (max-width: 600px) {
+  .fc-library {
+    padding: 18px 12px 32px;
+  }
+  /* the title takes the first line; the counts, Study all and Settings share the second */
+  .fc-lib-title {
+    flex-basis: 100%;
+  }
+  .fc-lib-head .fc-counts-big {
+    margin-right: auto;
+  }
+  .fc-deck {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+  }
+  .fc-deck .fc-counts {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .fc-deck .fc-study-btn {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .fc-scroll {
+    padding: 24px 16px;
+  }
+  .fc-front {
+    font-size: 21px;
+  }
+  .fc-md {
+    font-size: 15.5px;
+  }
+  .fc-bar {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .fc-root button.fc-show {
+    width: 100%;
+    min-width: 0;
+  }
+  .fc-ratings {
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .fc-root button.fc-rate {
+    padding: 10px 4px;
+    min-height: 56px;
+  }
+  .fc-rate kbd {
+    display: none;
+  }
+  .fc-study-head .fc-deck-label {
+    display: none;
+  }
+}
