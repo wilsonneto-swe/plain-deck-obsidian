@@ -1,6 +1,6 @@
 # Third-party notices
 
-Plain Deck has no runtime dependencies. Its scheduler (`packages/core/src/schedule/`) is a reimplementation
+Plain Deck has no runtime dependencies. Its scheduler (`core/schedule/`) is a reimplementation
 of the FSRS-6 algorithm that follows ts-fsrs 6.0.0 operation for operation (its formulas, default weights,
 parameter bounds, learning-step rules, fuzz ranges and fuzz random number generator), so that both schedule
 the same way; ts-fsrs itself is only a development dependency, used by the test that compares the two.
