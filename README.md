@@ -87,9 +87,10 @@ In Settings > Plain Deck, or with the Settings button in the decks view:
 
 ## Privacy
 
-Plain Deck works offline. It makes no network requests, has no telemetry or ads, and needs no account. It
-reads the notes of your vault whose names end in `.cards.md` (under the deck folder, if you set one) and writes
-only into those notes, one review line at a time; it creates a note only when you ask for the example deck.
+Plain Deck works offline. It makes no network requests, has no telemetry or ads, and needs no account. To find
+your decks it goes through the list of files in your vault (their paths only), then reads the notes whose names
+end in `.cards.md` (under the deck folder, if you set one). It writes only into those notes, one review line at
+a time, and creates a note only when you ask for the example deck.
 Its settings are kept in the plugin's own folder (`data.json`). It never reads or writes files outside your
 vault.
 

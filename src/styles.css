@@ -108,7 +108,8 @@
   margin: 0;
 }
 
-/* the settings tab: a value that cannot be used */
-input.fc-invalid {
-  border-color: var(--text-error) !important;
+/* the settings tab: a value that cannot be used (outranks Obsidian's input and focus borders without !important) */
+.setting-item input.fc-invalid,
+.setting-item input.fc-invalid:focus {
+  border-color: var(--text-error);
 }

@@ -51,8 +51,10 @@
   -webkit-font-smoothing: antialiased;
   outline: none;
 }
-.fc-root [hidden] {
-  display: none !important;
+/* `hidden` wins over every display rule of this sheet: an id inside :not() outranks any class selector, so
+   no !important is needed (hosts such as Obsidian lint against it) */
+.fc-root [hidden]:not(#fc-none) {
+  display: none;
 }
 .fc-root > section {
   flex: 1 1 0;
@@ -127,6 +129,7 @@
 }
 .fc-count {
   min-width: 1.4em;
+  padding-bottom: 3px;
   text-align: right;
 }
 .fc-count-new {
@@ -138,10 +141,10 @@
 .fc-count-review {
   color: var(--fc-review);
 }
+/* the bucket the card on screen comes from: a 2px line under it (drawn as a background, so every count keeps the
+   same box and nothing moves) */
 .fc-count.fc-current {
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-thickness: 2px;
+  background: linear-gradient(currentColor, currentColor) no-repeat center bottom / 100% 2px;
 }
 .fc-counts-big {
   font-size: 18px;
