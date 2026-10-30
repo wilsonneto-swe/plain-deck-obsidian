@@ -1,7 +1,7 @@
 {
   "id": "plain-deck",
   "name": "Plain Deck",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minAppVersion": "1.7.2",
   "description": "Study flashcards written in your notes, with spaced repetition (FSRS): each level-2 heading in a .cards.md note is a card, and each review is saved in that note, so your progress syncs with the vault.",
   "author": "Wilson Neto",

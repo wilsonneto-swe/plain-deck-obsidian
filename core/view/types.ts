@@ -42,7 +42,16 @@ export interface RenderContext {
   readonly part: CardPart;
 }
 
+/**
+ * Makes an element, not yet attached (the host's own helper: Obsidian's `createEl` in the plugin, the page's
+ * DOM in the web and desktop apps). The study UI never creates elements any other way, so a host decides how they are
+ * made, and Obsidian's guidelines about it hold inside the plugin.
+ */
+export type ElementFactory = <K extends keyof HTMLElementTagNameMap>(tag: K) => HTMLElementTagNameMap[K];
+
 export interface AppOptions {
+  /** How the UI makes its elements (ElementFactory). */
+  readonly createElement: ElementFactory;
   readonly settings?: Settings;
   /** Write one card's state into its deck, compare-and-set (F9). */
   setCardState(deckId: string, ref: CardRef, from: CardState | null, to: CardState | null): Promise<SaveOutcome>;

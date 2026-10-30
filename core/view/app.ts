@@ -84,8 +84,9 @@ export function mountApp(container: HTMLElement, options: AppOptions): AppHandle
   let messageTimer: number | null = null;
   let resumeTimer: number | null = null;
 
+  const make = options.createElement;
   const h = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] => {
-    const node = doc.createElement(tag);
+    const node = make(tag);
     if (className !== undefined) node.className = className;
     if (text !== undefined) node.textContent = text;
     return node;
@@ -275,7 +276,7 @@ export function mountApp(container: HTMLElement, options: AppOptions): AppHandle
         const li = h('li', 'fc-deck');
         const names = h('div', 'fc-deck-names');
         const title = h('span', 'fc-deck-title');
-        renderInline(e.deck.title, title);
+        renderInline(e.deck.title, title, make);
         const where = h('span', 'fc-deck-path', e.input.name);
         names.append(title, where);
         const notes: string[] = [];
@@ -439,8 +440,8 @@ export function mountApp(container: HTMLElement, options: AppOptions): AppHandle
       holder.textContent = markdown;
     };
     if (options.renderMarkdown === undefined) {
-      if (part === 'front') renderInline(markdown, holder);
-      else renderMarkdown(markdown, holder);
+      if (part === 'front') renderInline(markdown, holder, make);
+      else renderMarkdown(markdown, holder, make);
       return;
     }
     try {

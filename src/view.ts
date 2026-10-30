@@ -41,6 +41,8 @@ export class PlainDeckView extends ItemView {
     this.contentEl.addClass('fc-obsidian');
     const renderer = new ObsidianRenderer(this.app, this);
     this.handle = mountApp(this.contentEl, {
+      // the elements come from Obsidian's createEl, as its plugin guidelines ask
+      createElement: (tag) => createEl(tag),
       settings: this.plugin.data.settings,
       isMac: Platform.isMacOS || Platform.isIosApp,
       keyTarget: this.containerEl,
