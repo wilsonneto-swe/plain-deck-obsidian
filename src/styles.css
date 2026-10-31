@@ -107,6 +107,15 @@
 .fc-obsidian-empty p {
   margin: 0;
 }
+.fc-obsidian-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.fc-obsidian-empty .fc-obsidian-empty-hint {
+  font-size: var(--font-ui-small);
+}
 
 /* the settings tab: a value that cannot be used (outranks Obsidian's input and focus borders without !important) */
 .setting-item input.fc-invalid,

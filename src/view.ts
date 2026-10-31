@@ -76,12 +76,19 @@ export class PlainDeckView extends ItemView {
     const box = createDiv({ cls: 'fc-obsidian-empty' });
     box.createEl('h2', { text: 'No decks in this vault yet' });
     box.createEl('p', {
-      text: 'A deck is a note whose name ends in .cards.md: every ## heading in it is a card, and the lines under the heading are the answer. Your progress is written into the note, one hidden line per card, so it syncs with the vault.',
+      text: 'A deck is a note whose name ends in .cards.md, or any note you open as flashcards: every ## heading in it is a card, and the lines under the heading are the answer. Your progress is written into the note, one hidden line per card, so it syncs with the vault.',
     });
     const folder = this.plugin.data.folder;
     if (folder !== '') box.createEl('p', { text: `Only notes in the folder "${folder}" are decks (see the plugin's settings).` });
-    const add = box.createEl('button', { text: 'Add the example deck', cls: 'mod-cta' });
+    const row = box.createDiv({ cls: 'fc-obsidian-empty-actions' });
+    const add = row.createEl('button', { text: 'Add the example deck', cls: 'mod-cta' });
     add.addEventListener('click', () => void this.plugin.addExampleDeck());
+    const create = row.createEl('button', { text: 'Create a deck' });
+    create.addEventListener('click', () => void this.plugin.createDeck(this.plugin.newDeckFolder()));
+    box.createEl('p', {
+      cls: 'fc-obsidian-empty-hint',
+      text: 'You can also study any note from its right-click menu (its ## headings become cards, whatever its name), or start a new deck from a folder’s menu.',
+    });
     return box;
   }
 }

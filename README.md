@@ -1,7 +1,8 @@
 # Plain Deck
 
-Study flashcards written in your notes, with spaced repetition. A deck is an ordinary note whose name ends in
-`.cards.md`: every `## ` heading is a card's question, and the lines under it are the answer. Each review is
+Study flashcards written in your notes, with spaced repetition. A deck is an ordinary note: every `## `
+heading is a card's question, and the lines under it are the answer. Open any note as flashcards from its
+right-click menu, or name it `*.cards.md` to make it a deck everywhere. Each review is
 saved in the same note as one hidden line under the card, so your progress lives with your notes and syncs with
 your vault to every device you study on, phone included. Scheduling is FSRS-6, the algorithm Anki uses.
 
@@ -27,7 +28,13 @@ your vault to every device you study on, phone included. Scheduling is FSRS-6, t
 1. Install and enable Plain Deck ([Installation](#installation)).
 2. Select the layers icon in the left ribbon. In a vault without decks, choose **Add the example deck**: it
    explains the format while you study it.
-3. To make your own deck, create a note whose name ends in `.cards.md`, for example `Networking.cards.md`:
+3. Study a note you already have: right-click it in the file explorer (or open its **More options** menu) and
+   choose **Study as flashcards**, or run **Plain Deck: Study the current note**. Its `## ` headings are the
+   cards, whatever the note is called; Plain Deck keeps it with your decks until you choose **Remove from
+   decks** in the same menu.
+4. Or start a new deck: right-click a folder > **New flashcards deck**, or run **Plain Deck: Create a new deck**.
+   It creates `Untitled.cards.md` with a first card to overwrite. Every note whose name ends in `.cards.md`, for
+   example `Networking.cards.md`, is a deck without any step:
 
 ````markdown
 # Networking
@@ -59,8 +66,9 @@ console.log([1, 2, 3].map(parseInt));
 ## Studying
 
 - Open the decks with the layers icon in the ribbon, the command **Plain Deck: Open the decks**, or the status
-  bar on the desktop. Study every deck, one deck, the note you are in (**Study the current deck**), or
-  right-click a deck note or a folder.
+  bar on the desktop. Study every deck, one deck, the note you are in (**Study the current note**), or
+  right-click a note (**Study this deck**, **Study as flashcards**) or a folder (**Study the decks in this
+  folder**).
 - **Space** or **Enter** shows the answer, then rates it Good; **1** to **4** rate Again, Hard, Good and Easy
   (each button shows when the card comes back); **Ctrl+Z** (**⌘Z** on a Mac) takes a rating back; **Esc** goes
   back to the decks.
@@ -89,8 +97,8 @@ In Settings > Plain Deck, or with the Settings button in the decks view:
 
 Plain Deck works offline. It makes no network requests, has no telemetry or ads, and needs no account. To find
 your decks it goes through the list of files in your vault (their paths only), then reads the notes whose names
-end in `.cards.md` (under the deck folder, if you set one). It writes only into those notes, one review line at
-a time, and creates a note only when you ask for the example deck.
+end in `.cards.md` (under the deck folder, if you set one) and the notes you opened with it. It writes only into
+those notes, one review line at a time, and creates a note only when you ask for a new deck or the example deck.
 Its settings are kept in the plugin's own folder (`data.json`). It never reads or writes files outside your
 vault.
 

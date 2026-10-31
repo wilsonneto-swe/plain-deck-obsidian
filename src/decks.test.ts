@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { formatStateLine, type CardState } from '@plaindeck/core';
 import { DEFAULT_SETTINGS } from '@plaindeck/core';
-import { DeckIndex, isDeckPath, type VaultLike } from './decks.js';
+import { DeckIndex, freeDeckPath, isDeckPath, newDeckText, type VaultLike } from './decks.js';
+import { parseDeck } from '@plaindeck/core';
+
+/** DECK-FILES alone: the decks by their names, the whole vault. */
+const byName = (path: string): boolean => isDeckPath(path, '');
 
 const A: CardState = {
   phase: 'learning',
@@ -49,7 +53,7 @@ describe('DECK-FILES', () => {
   });
 
   it('load reads every deck; inputs are sorted by path and named by it', async () => {
-    const decks = new DeckIndex(vault({ 'b/Two.cards.md': '## T\nx\n', 'One.cards.md': '## O\ny\n', 'note.md': '## n\n' }), () => '');
+    const decks = new DeckIndex(vault({ 'b/Two.cards.md': '## T\nx\n', 'One.cards.md': '## O\ny\n', 'note.md': '## n\n' }), byName);
     await decks.load();
     expect(decks.inputs()).toEqual([
       { id: 'b/Two.cards.md', name: 'b/Two.cards.md', fileName: 'Two.cards.md', text: '## T\nx\n' },
@@ -59,7 +63,7 @@ describe('DECK-FILES', () => {
 
   it('refresh reports a new or changed deck once, and drops a note that stopped being one', async () => {
     const v = vault({ 'One.cards.md': '## O\ny\n' });
-    const decks = new DeckIndex(v, () => '');
+    const decks = new DeckIndex(v, byName);
     await decks.load();
     expect(await decks.refresh('One.cards.md')).toBe(false);
     v.files.set('One.cards.md', '## O\nchanged\n');
@@ -75,7 +79,7 @@ describe('DECK-FILES', () => {
 describe('VAULT-CAS', () => {
   it('a rating writes one line through process; the text comes back', async () => {
     const v = vault({ 'D.cards.md': '## Q\r\nA\r\n' });
-    const decks = new DeckIndex(v, () => '');
+    const decks = new DeckIndex(v, byName);
     await decks.load();
     const outcome = await decks.setCardState('D.cards.md', ref, null, A);
     expect(outcome).toEqual({ kind: 'saved', text: `## Q\r\n${formatStateLine(A)}\r\nA\r\n` });
@@ -86,7 +90,7 @@ describe('VAULT-CAS', () => {
   it('nothing to change, a changed state or a missing card: no write, the current text', async () => {
     const text = `## Q\n${formatStateLine(A)}\nA\n`;
     const v = vault({ 'D.cards.md': text });
-    const decks = new DeckIndex(v, () => '');
+    const decks = new DeckIndex(v, byName);
     await decks.load();
     expect(await decks.setCardState('D.cards.md', ref, A, A)).toEqual({ kind: 'saved', text });
     expect(await decks.setCardState('D.cards.md', ref, null, A)).toEqual({ kind: 'changed', text });
@@ -96,7 +100,7 @@ describe('VAULT-CAS', () => {
 
   it('a review synced in between the read and the write is compared at the write and never written over', async () => {
     const v = vault({ 'D.cards.md': '## Q\nA\n' });
-    const decks = new DeckIndex(v, () => '');
+    const decks = new DeckIndex(v, byName);
     await decks.load();
     const synced = `## Q\n${formatStateLine({ ...A, reps: 2 })}\nA\n`;
     v.during = (p) => v.files.set(p, synced); // Obsidian Sync lands right before process reads the note
@@ -107,7 +111,7 @@ describe('VAULT-CAS', () => {
 
   it('WRITE-CHAIN: a rating and its undo run in order', async () => {
     const v = vault({ 'D.cards.md': '## Q\nA\n' });
-    const decks = new DeckIndex(v, () => '');
+    const decks = new DeckIndex(v, byName);
     await decks.load();
     const [rate, undo] = await Promise.all([decks.setCardState('D.cards.md', ref, null, A), decks.setCardState('D.cards.md', ref, A, null)]);
     expect(rate.kind).toBe('saved');
@@ -116,7 +120,7 @@ describe('VAULT-CAS', () => {
 
   it('a deck that left the vault, or a failing vault, is a failure, never a throw', async () => {
     const v = vault({ 'D.cards.md': '## Q\nA\n' });
-    const decks = new DeckIndex(v, () => '');
+    const decks = new DeckIndex(v, byName);
     await decks.load();
     expect((await decks.setCardState('Other.cards.md', ref, null, A)).kind).toBe('failed');
     v.files.delete('D.cards.md');
@@ -127,8 +131,36 @@ describe('VAULT-CAS', () => {
 describe('waiting (the status bar)', () => {
   it('counts due learning and review cards, and new cards up to the per-deck limit', async () => {
     const overdue = formatStateLine({ ...A, phase: 'review', step: 0, due: Date.UTC(2026, 0, 2), last: Date.UTC(2025, 11, 29) });
-    const decks = new DeckIndex(vault({ 'D.cards.md': `## R\n${overdue}\nx\n## N1\ny\n## N2\nz\n` }), () => '');
+    const decks = new DeckIndex(vault({ 'D.cards.md': `## R\n${overdue}\nx\n## N1\ny\n## N2\nz\n` }), byName);
     await decks.load();
     expect(decks.waiting(Date.UTC(2026, 9, 29, 15), { ...DEFAULT_SETTINGS, newPerSession: 1 })).toEqual({ due: 1, fresh: 1 });
+  });
+});
+
+describe('NEW-DECK and OPENED-NOTES', () => {
+  it('freeDeckPath: the first name not taken, in the folder or at the root', () => {
+    const taken = new Set(['Untitled.cards.md', 'Courses/Untitled.cards.md', 'Courses/Untitled 1.cards.md']);
+    expect(freeDeckPath('', (p) => taken.has(p))).toBe('Untitled 1.cards.md');
+    expect(freeDeckPath('Courses', (p) => taken.has(p))).toBe('Courses/Untitled 2.cards.md');
+    expect(freeDeckPath('Other', (p) => taken.has(p))).toBe('Other/Untitled.cards.md');
+  });
+
+  it('newDeckText: a deck titled after the note, with one card', () => {
+    const deck = parseDeck(newDeckText('Biology'));
+    expect(deck.title).toBe('Biology');
+    expect(deck.cards.map((c) => c.front)).toEqual(['Your first question?']);
+    expect(isDeckPath('Untitled.cards.md', '')).toBe(true);
+  });
+
+  it('OPENED-NOTES: a note the plugin was told about is a deck whatever its name; the others are not', async () => {
+    const opened = new Set(['Notes/TCP.md']);
+    const decks = new DeckIndex(vault({ 'Notes/TCP.md': '## What does TCP add?\nOrder.\n', 'Notes/Other.md': '## Q\nA\n', 'D.cards.md': '## Q\nA\n' }), (p) => byName(p) || opened.has(p));
+    await decks.load();
+    expect(decks.paths()).toEqual(['D.cards.md', 'Notes/TCP.md']);
+    opened.add('Notes/Other.md');
+    expect(await decks.refresh('Notes/Other.md')).toBe(true);
+    opened.delete('Notes/TCP.md');
+    expect(await decks.refresh('Notes/TCP.md')).toBe(true);
+    expect(decks.paths()).toEqual(['D.cards.md', 'Notes/Other.md']);
   });
 });

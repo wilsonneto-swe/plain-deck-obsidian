@@ -4,11 +4,14 @@
  *
  * - DECK-FILES: a note whose name ends in `.cards.md` (any letter case) is a deck; with a deck folder set,
  *   only the notes under it. Notes in dot folders never are (Obsidian does not index them anyway).
+ *   OPENED-NOTES: any other note becomes a deck too once it is opened with the plugin (main.ts keeps the
+ *   list in the plugin's data); the index asks `isDeck(path)` and holds no rule of its own.
  * - VAULT-CAS: a rating reads the note as it is now (Vault.read), runs the core's compare-and-set
  *   (writeCardState, F9) and, only when the line changes, writes through Vault.process, which hands the
  *   note's current text to the same compare-and-set again and saves atomically: an edit or a synced review
  *   that lands between the read and the write is compared against, never written over.
  * - WRITE-CHAIN: the writes into one note run one after the other (a rating and its undo never race).
+ * - NEW-DECK: the name and the text a new deck gets (freeDeckPath, newDeckText); main.ts creates it.
  * - The texts kept here are what the UI shows; the vault's create / modify / delete / rename events keep
  *   them current (main.ts), our own writes included (they come back with the same text: nothing to show).
  */
@@ -23,6 +26,24 @@ export function isDeckPath(path: string, folder: string): boolean {
   if (!name.toLowerCase().endsWith(DECK_SUFFIX) || name.length === DECK_SUFFIX.length) return false;
   if (path.split('/').some((segment) => segment.startsWith('.'))) return false;
   return folder === '' || path.startsWith(`${folder}/`);
+}
+
+/** NEW-DECK: the first unused deck path in `folder` ('' = the vault's root): `Untitled.cards.md`, `Untitled 1.cards.md`… */
+export function freeDeckPath(folder: string, taken: (path: string) => boolean, base = 'Untitled'): string {
+  const at = (name: string): string => (folder === '' ? name : `${folder}/${name}`);
+  for (let n = 0; ; n++) {
+    const path = at(`${base}${n === 0 ? '' : ` ${n}`}${DECK_SUFFIX}`);
+    if (!taken(path)) return path;
+  }
+}
+
+/** What a new deck holds: its title and one card to overwrite, which also shows the format. */
+export function newDeckText(title: string): string {
+  return `# ${title}
+
+## Your first question?
+Its answer. Every \`## \` heading is a card, and the lines under it are the answer.
+`;
 }
 
 /** The slice of Obsidian's Vault the decks need, by vault path. */
@@ -45,12 +66,13 @@ export class DeckIndex {
 
   constructor(
     private readonly vault: VaultLike,
-    private readonly folder: () => string,
+    /** Is the note at this path a deck (DECK-FILES, OPENED-NOTES)? */
+    private readonly isDeck: (path: string) => boolean,
   ) {}
 
-  /** Read every deck of the vault (at startup, and when the deck folder changes). */
+  /** Read every deck of the vault (at startup, and when the deck folder or the opened notes change). */
   async load(): Promise<void> {
-    const paths = this.vault.markdownPaths().filter((p) => isDeckPath(p, this.folder()));
+    const paths = this.vault.markdownPaths().filter((p) => this.isDeck(p));
     const texts = await Promise.all(paths.map((p) => this.vault.cachedRead(p).catch(() => null)));
     const next = new Map<string, string>();
     paths.forEach((p, i) => {
@@ -74,7 +96,7 @@ export class DeckIndex {
    * to show (a deck appeared, or its text changed).
    */
   async refresh(path: string): Promise<boolean> {
-    if (!isDeckPath(path, this.folder())) return this.remove(path);
+    if (!this.isDeck(path)) return this.remove(path);
     let text: string;
     try {
       text = await this.vault.cachedRead(path);
