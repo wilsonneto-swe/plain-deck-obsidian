@@ -9,7 +9,9 @@
  *   study the decks in it.
  * - OPENED-NOTES: any Markdown note can be studied, whatever its name: "Study as flashcards" adds it to the
  *   plugin's data (`opened`), and from then on it is a deck like the `*.cards.md` notes (listed, counted,
- *   followed through renames, dropped when deleted) until "Remove from decks".
+ *   followed through renames, dropped when deleted) until "Remove from decks". Only a note that is no deck yet
+ *   takes a place in the list (OPENED_LIMIT: a new note past it is refused with a notice), and a note that
+ *   cannot be read gets a notice, not a silent failure.
  * - NEW-DECK: a new deck is `Untitled.cards.md` (or the next free name) with one card to overwrite, opened in
  *   a new tab; a notice says so when the deck folder setting leaves it out.
  * - VAULT-EVENTS: the vault's create / modify / delete / rename events keep the decks current in every open
@@ -327,20 +329,36 @@ export default class PlainDeckPlugin extends Plugin {
    */
   async studyNote(file: TFile): Promise<void> {
     if (!this.decks.has(file.path)) {
-      const cards = parseDeck(await this.app.vault.cachedRead(file), { name: file.name }).cards.length;
+      let text: string;
+      try {
+        text = await this.app.vault.cachedRead(file);
+      } catch (err) {
+        // called from a menu or a command, where nothing else would say it
+        new Notice(`Could not read ${file.name}: ${err instanceof Error ? err.message : String(err)}`);
+        return;
+      }
       // LATE-READS: deleted while it was read: never keep its path (a note created there later would be a deck)
       if (this.app.vault.getAbstractFileByPath(file.path) !== file) return;
-      if (cards === 0) {
+      if (parseDeck(text, { name: file.name }).cards.length === 0) {
         new Notice(`${file.name} has no flashcards yet: every "## " heading in a note is a card, and the lines under it are the answer.`);
         return;
       }
-      // refused, not truncated: a list cut to the limit would drop this note, or another one, without a word
-      if (this.data.opened.length >= OPENED_LIMIT) {
-        new Notice(`Plain Deck keeps up to ${OPENED_LIMIT} opened notes. Remove some from decks first, or name this note *.cards.md (those need no place in the list).`);
+      // a deck already (by its name, or on the list) whose read is not back yet: it needs no place in the list
+      if (!this.isDeck(file.path)) {
+        // refused, not truncated: a list cut to the limit would drop this note, or another one, without a word
+        if (this.data.opened.length >= OPENED_LIMIT) {
+          new Notice(`Plain Deck keeps up to ${OPENED_LIMIT} opened notes. Remove some from decks first, or name this note *.cards.md (those need no place in the list).`);
+          return;
+        }
+        await this.setOpened([...this.data.opened, file.path]);
+      }
+      await this.changed(file);
+      if (!this.decks.has(file.path)) {
+        // LATE-READS: not in the index after all: deleted, or no deck any more, meanwhile (nothing to study), or
+        // its read failed just now; never an empty session
+        if (this.app.vault.getAbstractFileByPath(file.path) === file && this.isDeck(file.path)) new Notice(`Could not read ${file.name}.`);
         return;
       }
-      await this.setOpened([...this.data.opened, file.path]);
-      await this.changed(file);
     }
     await this.openView((h) => h.study([file.path]));
   }
