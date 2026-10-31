@@ -19,22 +19,49 @@ const A: CardState = {
 };
 const ref = { front: 'Q', occurrence: 0 };
 
-/** An in-memory vault: `files` is the disk; `cache` lags behind it until `sync()` (Obsidian's cachedRead). */
-function vault(files: Record<string, string>): VaultLike & { files: Map<string, string>; writes: number; during: ((path: string) => void) | undefined } {
+/**
+ * An in-memory vault: `files` is the disk. `hold()` keeps every read that starts from now on waiting until the
+ * function it returns is called (a slow cachedRead, for LATE-READS).
+ */
+function vault(files: Record<string, string>): VaultLike & {
+  files: Map<string, string>;
+  writes: number;
+  during: ((path: string) => void) | undefined;
+  hold(): () => void;
+} {
   const disk = new Map(Object.entries(files));
+  let gate: Promise<void> | null = null;
+  const readNow = async (p: string): Promise<string> => {
+    const g = gate;
+    if (g !== null) await g;
+    if (!disk.has(p)) throw new Error('missing');
+    return disk.get(p) ?? '';
+  };
   const v = {
     files: disk,
     writes: 0,
     during: undefined as ((path: string) => void) | undefined,
     markdownPaths: () => [...disk.keys()].filter((p) => p.endsWith('.md')),
-    cachedRead: (p: string) => (disk.has(p) ? Promise.resolve(disk.get(p) ?? '') : Promise.reject(new Error('missing'))),
-    read: (p: string) => (disk.has(p) ? Promise.resolve(disk.get(p) ?? '') : Promise.reject(new Error('missing'))),
+    cachedRead: readNow,
+    read: readNow,
     process: (p: string, fn: (data: string) => string) => {
       v.during?.(p);
       const text = fn(disk.get(p) ?? '');
       disk.set(p, text);
       v.writes++;
       return Promise.resolve(text);
+    },
+    exists: (p: string) => disk.has(p),
+    hold: () => {
+      let release = (): void => undefined;
+      const g = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      gate = g;
+      return () => {
+        if (gate === g) gate = null;
+        release();
+      };
     },
   };
   return v;
@@ -162,5 +189,90 @@ describe('NEW-DECK and OPENED-NOTES', () => {
     opened.delete('Notes/TCP.md');
     expect(await decks.refresh('Notes/TCP.md')).toBe(true);
     expect(decks.paths()).toEqual(['D.cards.md', 'Notes/Other.md']);
+  });
+});
+
+describe('LATE-READS', () => {
+  const notes = { 'D.cards.md': '## Q\nA\n', 'Notes/A.md': '## A1\nx\n', 'Notes/B.md': '## B1\ny\n' };
+
+  it('a note removed from the decks while a load reads it is not brought back', async () => {
+    const opened = new Set(['Notes/A.md']);
+    const v = vault(notes);
+    const decks = new DeckIndex(v, (p) => byName(p) || opened.has(p));
+    const release = v.hold();
+    const loading = decks.load();
+    opened.delete('Notes/A.md');
+    release();
+    await loading;
+    expect(decks.paths()).toEqual(['D.cards.md']);
+  });
+
+  it('a note deleted while a load reads it is not listed', async () => {
+    const v = vault(notes);
+    const decks = new DeckIndex(v, byName);
+    const release = v.hold();
+    const loading = decks.load();
+    v.files.delete('D.cards.md');
+    release();
+    await loading;
+    expect(decks.paths()).toEqual([]);
+  });
+
+  it('a note removed from the decks while its refresh reads it stays out', async () => {
+    const opened = new Set(['Notes/A.md']);
+    const v = vault(notes);
+    const decks = new DeckIndex(v, (p) => byName(p) || opened.has(p));
+    const release = v.hold();
+    const refreshing = decks.refresh('Notes/A.md');
+    opened.delete('Notes/A.md');
+    release();
+    await refreshing;
+    expect(decks.has('Notes/A.md')).toBe(false);
+  });
+
+  it('a refresh that comes during a load lands after it, with the newer text', async () => {
+    const opened = new Set<string>();
+    const v = vault(notes);
+    const decks = new DeckIndex(v, (p) => byName(p) || opened.has(p));
+    const release = v.hold();
+    const loading = decks.load();
+    opened.add('Notes/B.md');
+    v.files.set('D.cards.md', '## Q\nA, edited\n');
+    const refreshing = Promise.all([decks.refresh('Notes/B.md'), decks.refresh('D.cards.md')]);
+    release();
+    await Promise.all([loading, refreshing]);
+    expect(decks.paths()).toEqual(['D.cards.md', 'Notes/B.md']);
+    expect(decks.input('D.cards.md')?.text).toBe('## Q\nA, edited\n');
+  });
+
+  it('an older load that finishes last does not replace a newer one', async () => {
+    const opened = new Set<string>();
+    const v = vault(notes);
+    const decks = new DeckIndex(v, (p) => byName(p) || opened.has(p));
+    const releaseFirst = v.hold();
+    const first = decks.load();
+    opened.add('Notes/A.md');
+    const releaseSecond = v.hold();
+    const second = decks.load();
+    releaseSecond();
+    await second;
+    releaseFirst();
+    await first;
+    expect(decks.paths()).toEqual(['D.cards.md', 'Notes/A.md']);
+  });
+
+  it('a rating whose write completes after the note left the decks does not bring it back', async () => {
+    const opened = new Set(['Notes/A.md']);
+    const v = vault({ 'Notes/A.md': '## Q\nx\n' });
+    const dropped: string[] = [];
+    const decks = new DeckIndex(v, (p) => byName(p) || opened.has(p), (p) => dropped.push(p));
+    await decks.load();
+    v.during = () => opened.delete('Notes/A.md'); // "Remove from decks" while the rating is being written
+    const outcome = await decks.setCardState('Notes/A.md', ref, null, A);
+    expect(outcome.kind).toBe('saved');
+    expect(v.files.get('Notes/A.md')).toBe(`## Q\n${formatStateLine(A)}\nx\n`);
+    expect(decks.has('Notes/A.md')).toBe(false);
+    // and the views are told, since the cleanup that follows finds no entry left to drop
+    expect(dropped).toEqual(['Notes/A.md']);
   });
 });

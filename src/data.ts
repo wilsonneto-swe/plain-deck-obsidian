@@ -37,16 +37,17 @@ export function parseData(raw: unknown): PluginData {
   return {
     settings: parseSettings(r['settings']),
     folder: typeof folder === 'string' ? normalizeFolder(folder) : '',
-    opened: Array.isArray(opened) ? openedList(opened.filter((p): p is string => typeof p === 'string')) : [],
+    // a data.json the plugin did not write may hold more than the plugin ever adds: keep the first OPENED_LIMIT
+    opened: Array.isArray(opened) ? openedList(opened.filter((p): p is string => typeof p === 'string')).slice(0, OPENED_LIMIT) : [],
   };
 }
 
-/** The opened notes as kept: Markdown vault paths, normalised, each once, sorted, at most OPENED_LIMIT. */
+/**
+ * The opened notes as kept: Markdown vault paths exactly as Obsidian gives them (nothing trimmed: a note's name
+ * may start with a space), each once, sorted. Never truncated: the plugin refuses a new note at OPENED_LIMIT.
+ */
 export function openedList(paths: Iterable<string>): string[] {
   const out = new Set<string>();
-  for (const p of paths) {
-    const path = normalizeFolder(p);
-    if (path.toLowerCase().endsWith('.md')) out.add(path);
-  }
-  return [...out].sort().slice(0, OPENED_LIMIT);
+  for (const p of paths) if (p.toLowerCase().endsWith('.md')) out.add(p);
+  return [...out].sort();
 }

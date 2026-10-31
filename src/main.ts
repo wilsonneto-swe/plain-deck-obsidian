@@ -21,7 +21,7 @@ import '@plaindeck/core/app.css';
 import './styles.css';
 import { Notice, Platform, Plugin, TFile, TFolder, normalizePath, type App, type Menu, type TAbstractFile } from 'obsidian';
 import { SAMPLE_DECK, SAMPLE_DECK_NAME, deckNameOf, parseDeck, type AppHandle, type CardRef, type CardState, type SaveOutcome, type Settings } from '@plaindeck/core';
-import { DEFAULT_DATA, normalizeFolder, openedList, parseData, type PluginData } from './data.js';
+import { DEFAULT_DATA, OPENED_LIMIT, normalizeFolder, openedList, parseData, type PluginData } from './data.js';
 import { DeckIndex, freeDeckPath, isDeckPath, newDeckText, type VaultLike } from './decks.js';
 import { PlainDeckSettingTab } from './settings-tab.js';
 import { PlainDeckView, ICON, VIEW_TYPE } from './view.js';
@@ -38,6 +38,7 @@ function vaultOf(app: App): VaultLike {
     cachedRead: (path) => app.vault.cachedRead(file(path)),
     read: (path) => app.vault.read(file(path)),
     process: (path, fn) => app.vault.process(file(path), fn),
+    exists: (path) => app.vault.getAbstractFileByPath(path) instanceof TFile,
   };
 }
 
@@ -46,7 +47,13 @@ const STATUS_REFRESH_MS = 60_000;
 
 export default class PlainDeckPlugin extends Plugin {
   data: PluginData = DEFAULT_DATA;
-  readonly decks = new DeckIndex(vaultOf(this.app), (path) => this.isDeck(path));
+  // a deck that a finished rating found gone from the decks leaves the views at once (LATE-READS): the cleanup
+  // that follows (changed, dropDeck) finds no index entry left and would not tell them
+  readonly decks = new DeckIndex(
+    vaultOf(this.app),
+    (path) => this.isDeck(path),
+    (path) => this.removeFromViews(path),
+  );
   private statusEl: HTMLElement | null = null;
   private opened = new Set<string>();
 
@@ -136,15 +143,18 @@ export default class PlainDeckPlugin extends Plugin {
 
   private async changed(file: TAbstractFile): Promise<void> {
     if (!(file instanceof TFile)) return;
-    const had = this.decks.has(file.path);
-    const updated = await this.decks.refresh(file.path);
-    if (!this.decks.has(file.path)) {
+    // LATE-READS: the path as it is now, the one the views know: Obsidian renames a TFile in place, so a
+    // rename while the read is pending would make file.path the new name below
+    const path = file.path;
+    const had = this.decks.has(path);
+    const updated = await this.decks.refresh(path);
+    if (!this.decks.has(path)) {
       // no deck (any more): a note the deck folder or the opened notes no longer include leaves the views
-      if (had) this.removeFromViews(file.path);
+      if (had) this.removeFromViews(path);
       return;
     }
     if (!updated) return;
-    const deck = this.decks.input(file.path);
+    const deck = this.decks.input(path);
     if (deck !== undefined) for (const view of this.views()) view.handle?.upsertDeck(deck);
     this.updateStatus();
   }
@@ -318,8 +328,15 @@ export default class PlainDeckPlugin extends Plugin {
   async studyNote(file: TFile): Promise<void> {
     if (!this.decks.has(file.path)) {
       const cards = parseDeck(await this.app.vault.cachedRead(file), { name: file.name }).cards.length;
+      // LATE-READS: deleted while it was read: never keep its path (a note created there later would be a deck)
+      if (this.app.vault.getAbstractFileByPath(file.path) !== file) return;
       if (cards === 0) {
         new Notice(`${file.name} has no flashcards yet: every "## " heading in a note is a card, and the lines under it are the answer.`);
+        return;
+      }
+      // refused, not truncated: a list cut to the limit would drop this note, or another one, without a word
+      if (this.data.opened.length >= OPENED_LIMIT) {
+        new Notice(`Plain Deck keeps up to ${OPENED_LIMIT} opened notes. Remove some from decks first, or name this note *.cards.md (those need no place in the list).`);
         return;
       }
       await this.setOpened([...this.data.opened, file.path]);

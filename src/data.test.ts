@@ -13,10 +13,15 @@ describe('plugin data', () => {
     expect(parseData({ folder: 7 }).folder).toBe('');
   });
 
-  it('OPENED-NOTES: Markdown paths, normalised, each once, sorted, bounded', () => {
-    expect(parseData({ opened: ['Notes/TCP.md', '/Notes//TCP.md', 'b.md', 'picture.png', 7, ''] }).opened).toEqual(['Notes/TCP.md', 'b.md']);
+  it('OPENED-NOTES: Markdown paths exactly as given (a name may start with a space), each once, sorted', () => {
+    expect(parseData({ opened: ['Notes/TCP.md', ' Notes.md', 'b.md', 'Notes/TCP.md', 'picture.png', 7, ''] }).opened).toEqual([' Notes.md', 'Notes/TCP.md', 'b.md']);
     expect(parseData({ opened: 'Notes/TCP.md' }).opened).toEqual([]);
-    expect(openedList(Array.from({ length: OPENED_LIMIT + 5 }, (_, i) => `n${i}.md`))).toHaveLength(OPENED_LIMIT);
+  });
+
+  it('OPENED-NOTES: openedList never drops a path; only a data.json holding more than OPENED_LIMIT is cut on load', () => {
+    const many = Array.from({ length: OPENED_LIMIT + 5 }, (_, i) => `n${String(i).padStart(5, '0')}.md`);
+    expect(openedList(many)).toHaveLength(OPENED_LIMIT + 5);
+    expect(parseData({ opened: many }).opened).toEqual(many.slice(0, OPENED_LIMIT));
   });
 
   it('normalizeFolder', () => {

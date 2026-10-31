@@ -12,6 +12,10 @@
  *   that lands between the read and the write is compared against, never written over.
  * - WRITE-CHAIN: the writes into one note run one after the other (a rating and its undo never race).
  * - NEW-DECK: the name and the text a new deck gets (freeDeckPath, newDeckText); main.ts creates it.
+ * - LATE-READS: reads take time, and the decks can change meanwhile ("Remove from decks", a deletion, a
+ *   rename, another reload). A load or a refresh checks membership again once its reads are back, a refresh
+ *   waits for a load in flight, and only the latest load replaces the texts. main.ts takes a note's path
+ *   before the read starts: Obsidian renames a TFile in place, so `file.path` can be the new name by then.
  * - The texts kept here are what the UI shows; the vault's create / modify / delete / rename events keep
  *   them current (main.ts), our own writes included (they come back with the same text: nothing to show).
  */
@@ -56,6 +60,8 @@ export interface VaultLike {
   read(path: string): Promise<string>;
   /** Atomic read-modify-write: `fn` gets the note's current text; resolves to the text saved. */
   process(path: string, fn: (data: string) => string): Promise<string>;
+  /** Is there a note at this path now? */
+  exists(path: string): boolean;
 }
 
 const describe = (err: unknown): string => (err instanceof Error ? err.message : String(err));
@@ -63,23 +69,40 @@ const describe = (err: unknown): string => (err instanceof Error ? err.message :
 export class DeckIndex {
   private texts = new Map<string, string>();
   private readonly chains = new Map<string, Promise<SaveOutcome>>();
+  /** The load in flight (LATE-READS), and how many loads have started. */
+  private loading: Promise<void> | null = null;
+  private loads = 0;
 
   constructor(
     private readonly vault: VaultLike,
     /** Is the note at this path a deck (DECK-FILES, OPENED-NOTES)? */
     private readonly isDeck: (path: string) => boolean,
+    /** A finished write found its note no deck any more and dropped it (LATE-READS): the views must drop it too. */
+    private readonly onDropped: (path: string) => void = () => undefined,
   ) {}
 
   /** Read every deck of the vault (at startup, and when the deck folder or the opened notes change). */
   async load(): Promise<void> {
-    const paths = this.vault.markdownPaths().filter((p) => this.isDeck(p));
-    const texts = await Promise.all(paths.map((p) => this.vault.cachedRead(p).catch(() => null)));
-    const next = new Map<string, string>();
-    paths.forEach((p, i) => {
-      const text = texts[i];
-      if (text !== null && text !== undefined) next.set(p, text);
-    });
-    this.texts = next;
+    const run = async (): Promise<void> => {
+      const load = ++this.loads;
+      const paths = this.vault.markdownPaths().filter((p) => this.isDeck(p));
+      const texts = await Promise.all(paths.map((p) => this.vault.cachedRead(p).catch(() => null)));
+      if (load !== this.loads) return; // LATE-READS: a newer load started meanwhile and has the say
+      const next = new Map<string, string>();
+      paths.forEach((p, i) => {
+        const text = texts[i];
+        // LATE-READS: still a note, and still a deck, now that the reads are back
+        if (text !== null && text !== undefined && this.vault.exists(p) && this.isDeck(p)) next.set(p, text);
+      });
+      this.texts = next;
+    };
+    const loading = run();
+    this.loading = loading;
+    try {
+      await loading;
+    } finally {
+      if (this.loading === loading) this.loading = null;
+    }
   }
 
   has(path: string): boolean {
@@ -96,6 +119,8 @@ export class DeckIndex {
    * to show (a deck appeared, or its text changed).
    */
   async refresh(path: string): Promise<boolean> {
+    // LATE-READS: after a load in flight, whose older snapshot would otherwise replace this read
+    while (this.loading !== null) await this.loading;
     if (!this.isDeck(path)) return this.remove(path);
     let text: string;
     try {
@@ -103,6 +128,8 @@ export class DeckIndex {
     } catch {
       return false;
     }
+    // LATE-READS: removed from the decks, or deleted, while the read was pending: it stays out
+    if (!this.isDeck(path) || !this.vault.exists(path)) return this.remove(path);
     if (this.texts.get(path) === text) return false;
     this.texts.set(path, text);
     return true;
@@ -137,6 +164,12 @@ export class DeckIndex {
     return { due, fresh };
   }
 
+  /** The text a read or a write just got, kept only if the note is still a deck (LATE-READS). */
+  private keep(path: string, text: string): void {
+    if (this.isDeck(path) && this.vault.exists(path)) this.texts.set(path, text);
+    else if (this.texts.delete(path)) this.onDropped(path);
+  }
+
   /** AppOptions.setCardState: WRITE-CHAIN, then VAULT-CAS. Never throws. */
   setCardState(path: string, ref: CardRef, from: CardState | null, to: CardState | null): Promise<SaveOutcome> {
     const run = async (): Promise<SaveOutcome> => {
@@ -145,7 +178,7 @@ export class DeckIndex {
         const current = await this.vault.read(path);
         const first = writeCardState(current, ref, from, to);
         if (first.kind !== 'written' || first.text === current) {
-          this.texts.set(path, current);
+          this.keep(path, current);
           return { kind: first.kind === 'written' ? 'saved' : first.kind, text: current };
         }
         const box: { result: WriteResult } = { result: first };
@@ -154,7 +187,7 @@ export class DeckIndex {
           box.result = writeCardState(data, ref, from, to);
           return box.result.kind === 'written' ? box.result.text : data;
         });
-        this.texts.set(path, saved);
+        this.keep(path, saved);
         return { kind: box.result.kind === 'written' ? 'saved' : box.result.kind, text: saved };
       } catch (err) {
         return { kind: 'failed', message: describe(err) };
