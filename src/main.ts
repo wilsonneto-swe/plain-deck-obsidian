@@ -353,6 +353,12 @@ export default class PlainDeckPlugin extends Plugin {
         await this.setOpened([...this.data.opened, file.path]);
       }
       await this.changed(file);
+      if (!this.decks.has(file.path)) {
+        // LATE-READS: not in the index after all: deleted, or no deck any more, meanwhile (nothing to study), or
+        // its read failed just now; never an empty session
+        if (this.app.vault.getAbstractFileByPath(file.path) === file && this.isDeck(file.path)) new Notice(`Could not read ${file.name}.`);
+        return;
+      }
     }
     await this.openView((h) => h.study([file.path]));
   }
