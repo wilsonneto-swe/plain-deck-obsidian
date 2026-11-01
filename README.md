@@ -10,7 +10,7 @@ saved in the same note as one hidden line under the card, so your progress lives
 your vault to every device you study on, phone included. Scheduling is FSRS-6, the algorithm Anki uses.
 
 <p align="center">
-  <img src=".github/assets/demo.gif" width="860" alt="Plain Deck in Obsidian: a deck note on the left, the Plain Deck view on the right; each rating adds one review line under the card's heading in the note">
+  <img src=".github/assets/study.gif" width="860" alt="The Plain Deck view on its own in Obsidian: the decks with their new, learning and due counts; Study on Getting started; each card shows its question, then Show answer reveals the answer rendered by Obsidian, a code block or a code prompt above it, with the four ratings and when each brings the card back; back in the decks, the counts have moved">
 </p>
 
 ## Features
@@ -84,6 +84,10 @@ console.log([1, 2, 3].map(parseInt));
 - You can reword a question or an answer at any time; the card keeps its progress.
 
 ## Studying
+
+<p align="center">
+  <img src=".github/assets/demo.gif" width="860" alt="Plain Deck in Obsidian: a deck note on the left, the Plain Deck view on the right; each rating adds one review line under the card's heading in the note">
+</p>
 
 - Open the decks with the layers icon in the ribbon, the command **Plain Deck: Open the decks**, or the status
   bar on the desktop. Study every deck, one deck, the note you are in (**Study the current note**), or
