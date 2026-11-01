@@ -26,6 +26,23 @@ your vault to every device you study on, phone included. Scheduling is FSRS-6, t
 - **Desktop and mobile.** Keys on the computer; on a phone, tap to show the answer and tap a rating.
 - **FSRS-6 scheduling**, with your desired retention, learning steps and a limit of new cards per deck.
 
+## How it compares
+
+Several Obsidian plugins let you study flashcards written in your notes. The table sets out what each one says about
+itself on its page in the [community directory](https://community.obsidian.md/plugins) (read on November 1, 2026);
+"—" means the page doesn't say.
+
+| | Cards are written as | Review progress is kept in | Scheduler | Desktop and mobile | Network use |
+| --- | --- | --- | --- | --- | --- |
+| **Plain Deck** | `## ` headings with the answer under them, in `*.cards.md` notes or any note you open as flashcards | One comment line under each card, in the card's own note | FSRS-6 | Yes | None |
+| [Decks](https://community.obsidian.md/plugins/decks) | `## ` headings (the level can be changed) with the text under them, two-column tables, image occlusion and `==cloze==`, in notes tagged `#decks` | A SQLite database, `flashcards.db`, in the plugin's folder, plus one sync log file per device in the vault | FSRS-6 | Yes | Optional: its deck directory and AI features |
+| [Spaced Repetition](https://community.obsidian.md/plugins/obsidian-spaced-repetition) | `Question::Answer`, multi-line cards split by `?`, and cloze cards, in notes tagged `#flashcards` | — | FSRS or SM-2 | Yes | — |
+| [Talking Cards](https://community.obsidian.md/plugins/talking-cards) | `Question ;; Answer` or `Question :: Answer`, multi-line cards split by `?`, cloze and image occlusion; decks are folders | Files in the vault, `Talking Cards/reviews-<device>-<year>.md`, one per device | FSRS | Yes | Only for its voice store and voice downloads |
+
+Plain Deck keeps each card's current schedule (due date, stability, difficulty, reviews and lapses), not a log of
+every review. The others also do things Plain Deck doesn't: Decks imports Anki collections, Spaced Repetition
+schedules whole notes for review, and Talking Cards reads cards aloud.
+
 ## Getting started
 
 1. Install and enable Plain Deck ([Installation](#installation)).
