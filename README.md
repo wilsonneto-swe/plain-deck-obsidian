@@ -157,6 +157,8 @@ npm run check      # Obsidian's lint rules, type checks, tests and the build
 
 Copy `main.js`, `manifest.json` and `styles.css` into `<vault>/.obsidian/plugins/plain-deck/`. Releases are
 built by GitHub Actions when a version tag is pushed (`.github/workflows/release.yml`), with build attestations.
+[CONTRIBUTING.md](CONTRIBUTING.md) covers trying a build in a test vault, reporting a bug and sending a pull
+request.
 
 ## Feedback
 
