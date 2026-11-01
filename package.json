@@ -1,6 +1,6 @@
 {
   "name": "plain-deck",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "description": "Study flashcards written in your notes, with spaced repetition (FSRS): each level-2 heading in a .cards.md note is a card, and each review is saved in that note, so your progress syncs with the vault.",
   "type": "module",
