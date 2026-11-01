@@ -175,3 +175,8 @@ request is welcome and ships with the next version: [CONTRIBUTING.md](CONTRIBUTI
 MIT, see [LICENSE](LICENSE). The scheduler is a reimplementation of FSRS-6 that follows
 [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs) (MIT, Copyright (c) 2026 Open Spaced Repetition):
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+## More plugins by the author
+
+[Mindslate](https://community.obsidian.md/plugins/mindslate): open a note as a keyboard-first mind map and edit it in
+place, while the note stays an ordinary heading with a nested list.
