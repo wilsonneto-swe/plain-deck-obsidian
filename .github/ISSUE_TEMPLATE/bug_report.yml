@@ -11,7 +11,7 @@ body:
     attributes:
       label: Plain Deck version
       description: Settings > Community plugins shows it.
-      placeholder: "1.0.6"
+      placeholder: "1.0.7"
     validations:
       required: true
   - type: input

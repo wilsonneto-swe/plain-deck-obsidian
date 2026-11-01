@@ -16,7 +16,7 @@
  * The stylesheet is a separate export: `import '@plaindeck/core/app.css'`.
  */
 
-export const VERSION = '1.0.6' as const;
+export const VERSION = '1.0.7' as const;
 
 export * from './format/index.js';
 export * from './schedule/index.js';
