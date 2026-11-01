@@ -1,5 +1,8 @@
 # Plain Deck
 
+**Your review progress lives in the card's own note, so git, iCloud and Obsidian Sync carry it with no separate
+database.**
+
 Study flashcards written in your notes, with spaced repetition. A deck is an ordinary note: every `## `
 heading is a card's question, and the lines under it are the answer. Open any note as flashcards from its
 right-click menu, or name it `*.cards.md` to make it a deck everywhere. Each review is
