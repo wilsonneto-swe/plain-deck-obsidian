@@ -88,7 +88,7 @@ The [`examples`](examples) folder has decks to try: copy one into your vault and
 
 - [Getting started](examples/Getting%20started.cards.md): the format, explained by a deck (the same deck the
   plugin offers to add when the vault has none).
-- [DDIA - Sharding](examples/DDIA%20-%20Sharding.cards.md): a study deck of 57 cards from Chapter 7 of
+- [DDIA - Sharding](examples/DDIA%20-%20Sharding.cards.md): a study deck of 59 cards from Chapter 7 of
   *Designing Data-Intensive Applications* (2nd edition), grouped by `# ` headings in the chapter's order.
 
 ## For AI agents

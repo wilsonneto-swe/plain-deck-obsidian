@@ -28,14 +28,14 @@ and joins across shards get hard, and multi-shard writes need distributed transa
 ## What does the partition key determine?
 Which shard a record lives in: all records with the same partition key land in the same shard.
 
-Without the key, a lookup has to search every shard.
+Without the key, a lookup has to search every shard, unless a global secondary index (below) can route it.
 
 ## Why is a write that touches several shards a problem?
 Keeping the shards consistent needs a distributed transaction, which is much slower than a single-node one
 and can become a bottleneck (Chapter 8).
 
 ## With single-leader replication, how are shard leaders spread over the nodes?
-Each shard has exactly one leader, but leaders are spread out: every node is leader for some shards and
+Each shard has exactly one leader, but leaders are spread out: a node can be leader for some shards and
 follower for others.
 
 ## Why do Redis, VoltDB and FoundationDB shard inside a single machine?
@@ -55,8 +55,8 @@ Giving each tenant (customer) its own shard, or grouping several small tenants i
 Services and storage for a set of tenants are grouped into a self-contained cell that runs independently
 of other cells, so a fault in one cell stays inside it.
 
-## How does a shard per tenant (or per person) simplify GDPR or CCPA requests?
-Exporting or deleting a person's data becomes a simple operation on their shard.
+## How does giving each person their own shard simplify GDPR or CCPA requests?
+Exporting or deleting that person's data becomes a simple operation on their shard.
 
 ## What happens when one tenant outgrows a single node?
 You must shard within that tenant too, which brings back the general scalability problem.
@@ -91,10 +91,11 @@ Keys are sorted within each shard, so range scans are efficient (for example, al
 Live measurements all carry the current time, so every write lands in the shard for the current time
 range while the others sit idle.
 
-## How can the sensor-timestamp hot spot be fixed, and what does the fix cost?
+## How can the sensor-timestamp hot spot be fixed?
 Put the sensor ID before the timestamp in the key, so writes spread across shards.
 
-The cost: a time range across many sensors now needs one range query per sensor.
+## What does putting the sensor ID before the timestamp cost?
+A time range across many sensors now needs one range query per sensor.
 
 ## What is pre-splitting?
 Configuring an initial set of key-range shards on an empty database (HBase, MongoDB).
@@ -114,7 +115,7 @@ already under heavy load.
 ## Why hash the partition key before mapping it to a shard?
 A good hash function spreads skewed or very similar keys uniformly across the hash range.
 
-## Why are Java's `hashCode()` and Ruby's `Object#hash` unsuitable for sharding?
+## Why are Java's `Object.hashCode()` and Ruby's `Object#hash` unsuitable for sharding?
 The same key may get a different hash value in different processes.
 
 ## What goes wrong with `hash(key) % N` when the number of nodes changes?
@@ -234,9 +235,11 @@ shards does not increase query throughput.
 One index covering all the data, itself sharded by the indexed value (the term) rather than by the
 record's partition key.
 
-## On a global secondary index, what does a single-term read cost, and what does a write cost?
-The read hits one index shard to get the postings list (fetching the full records still hits their data
-shards). A write may have to update several index shards, one per term.
+## On a global secondary index, what does a single-term read cost?
+One index shard, to get the postings list (fetching the full records still hits their data shards).
+
+## On a global secondary index, what does a write cost?
+It may have to update several index shards, one per term of the record.
 
 ## Why are multi-condition queries costly on a global secondary index?
 Each term may live on a different shard, so long postings lists must be sent over the network to compute
