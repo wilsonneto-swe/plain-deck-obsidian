@@ -1,5 +1,8 @@
 # Plain Deck
 
+**Your review progress lives in the card's own note, so git, iCloud and Obsidian Sync carry it with no separate
+database.**
+
 Study flashcards written in your notes, with spaced repetition. A deck is an ordinary note: every `## `
 heading is a card's question, and the lines under it are the answer. Open any note as flashcards from its
 right-click menu, or name it `*.cards.md` to make it a deck everywhere. Each review is
@@ -22,6 +25,23 @@ your vault to every device you study on, phone included. Scheduling is FSRS-6, t
   links and your theme.
 - **Desktop and mobile.** Keys on the computer; on a phone, tap to show the answer and tap a rating.
 - **FSRS-6 scheduling**, with your desired retention, learning steps and a limit of new cards per deck.
+
+## How it compares
+
+Several Obsidian plugins let you study flashcards written in your notes. The table sets out what each one says about
+itself on its page in the [community directory](https://community.obsidian.md/plugins) (read on November 1, 2026);
+"—" means the page doesn't say.
+
+| | Cards are written as | Review progress is kept in | Scheduler | Desktop and mobile | Network use |
+| --- | --- | --- | --- | --- | --- |
+| **Plain Deck** | `## ` headings with the answer under them, in `*.cards.md` notes or any note you open as flashcards | One comment line under each card, in the card's own note | FSRS-6 | Yes | None |
+| [Decks](https://community.obsidian.md/plugins/decks) | `## ` headings (the level can be changed) with the text under them, two-column tables, image occlusion and `==cloze==`, in notes tagged `#decks` | A SQLite database, `flashcards.db`, in the plugin's folder, plus one sync log file per device in the vault | FSRS-6 | Yes | Optional: its deck directory and AI features |
+| [Spaced Repetition](https://community.obsidian.md/plugins/obsidian-spaced-repetition) | `Question::Answer`, multi-line cards split by `?`, and cloze cards, in notes tagged `#flashcards` | — | FSRS or SM-2 | Yes | — |
+| [Talking Cards](https://community.obsidian.md/plugins/talking-cards) | `Question ;; Answer` or `Question :: Answer`, multi-line cards split by `?`, cloze and image occlusion; decks are folders | Files in the vault, `Talking Cards/reviews-<device>-<year>.md`, one per device | FSRS | Yes | Only for its voice store and voice downloads |
+
+Plain Deck keeps each card's current schedule (due date, stability, difficulty, reviews and lapses), not a log of
+every review. The others also do things Plain Deck doesn't: Decks imports Anki collections, Spaced Repetition
+schedules whole notes for review, and Talking Cards reads cards aloud.
 
 ## Getting started
 
@@ -90,6 +110,8 @@ The [`examples`](examples) folder has decks to try: copy one into your vault and
   plugin offers to add when the vault has none).
 - [DDIA - Sharding](examples/DDIA%20-%20Sharding.cards.md): a study deck of 59 cards from Chapter 7 of
   *Designing Data-Intensive Applications* (2nd edition), grouped by `# ` headings in the chapter's order.
+- [Git basics](examples/Git%20basics.cards.md): 20 cards on everyday Git (saving changes, branches, remotes and
+  undoing things), one fact per card, with a code card split by `?`.
 
 ## For AI agents
 
@@ -108,8 +130,9 @@ Installing it is one copy, for example into `~/.claude/skills/` for Claude Code:
 
 ## Installation
 
-- **From Community plugins** (once Plain Deck is listed in the directory): Settings > Community plugins >
-  Browse, search for "Plain Deck", then select **Install** and **Enable**.
+- **From Community plugins**: Settings > Community plugins > Browse, search for "Plain Deck", then select
+  **Install** and **Enable**. Or select **Add to Obsidian** on
+  [its page in the community directory](https://community.obsidian.md/plugins/plain-deck).
 - **Manually**: download `main.js`, `manifest.json` and `styles.css` from the
   [latest release](https://github.com/wilsonneto-swe/plain-deck-obsidian/releases/latest) into
   `<vault>/.obsidian/plugins/plain-deck/`, reload Obsidian, then enable **Plain Deck** in Settings > Community
@@ -137,15 +160,26 @@ npm run check      # Obsidian's lint rules, type checks, tests and the build
 
 Copy `main.js`, `manifest.json` and `styles.css` into `<vault>/.obsidian/plugins/plain-deck/`. Releases are
 built by GitHub Actions when a version tag is pushed (`.github/workflows/release.yml`), with build attestations.
+[CONTRIBUTING.md](CONTRIBUTING.md) covers trying a build in a test vault, reporting a bug and sending a pull
+request.
 
 ## Feedback
 
-Questions, ideas and bugs: [open an issue](https://github.com/wilsonneto-swe/plain-deck-obsidian/issues). The
-plugin is developed together with its tests in a separate repository and exported here for each release, so a
-pull request is welcome and ships with the next version.
+**What would make you switch from your current flashcard plugin?** Tell us in
+[Discussions](https://github.com/wilsonneto-swe/plain-deck-obsidian/discussions), where questions and ideas are
+welcome too.
+
+Found a bug? [Open an issue](https://github.com/wilsonneto-swe/plain-deck-obsidian/issues/new/choose). The plugin
+is developed together with its tests in a separate repository and exported here for each release, so a pull
+request is welcome and ships with the next version: [CONTRIBUTING.md](CONTRIBUTING.md) explains how.
 
 ## License
 
 MIT, see [LICENSE](LICENSE). The scheduler is a reimplementation of FSRS-6 that follows
 [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs) (MIT, Copyright (c) 2026 Open Spaced Repetition):
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+## More plugins by the author
+
+[Mindslate](https://community.obsidian.md/plugins/mindslate): open a note as a keyboard-first mind map and edit it in
+place, while the note stays an ordinary heading with a nested list.
