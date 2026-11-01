@@ -130,8 +130,9 @@ Installing it is one copy, for example into `~/.claude/skills/` for Claude Code:
 
 ## Installation
 
-- **From Community plugins** (once Plain Deck is listed in the directory): Settings > Community plugins >
-  Browse, search for "Plain Deck", then select **Install** and **Enable**.
+- **From Community plugins**: Settings > Community plugins > Browse, search for "Plain Deck", then select
+  **Install** and **Enable**. Or select **Add to Obsidian** on
+  [its page in the community directory](https://community.obsidian.md/plugins/plain-deck).
 - **Manually**: download `main.js`, `manifest.json` and `styles.css` from the
   [latest release](https://github.com/wilsonneto-swe/plain-deck-obsidian/releases/latest) into
   `<vault>/.obsidian/plugins/plain-deck/`, reload Obsidian, then enable **Plain Deck** in Settings > Community
