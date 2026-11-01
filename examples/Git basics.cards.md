@@ -24,7 +24,7 @@ The staging area. Changes you have not added with `git add` stay out of the comm
 `git diff --staged` (or `--cached`): it compares the staging area with the last commit.
 
 ## In `git status`, what is an untracked file?
-A file in your working tree that is not in the staging area (it was never added) and is not ignored.
+A file in your working tree that Git does not track (it is not in the staging area) and that is not ignored.
 
 ## Does adding a tracked file to `.gitignore` make Git stop tracking it?
 No. `.gitignore` only applies to untracked files.
