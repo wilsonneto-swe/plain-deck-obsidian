@@ -162,9 +162,13 @@ request.
 
 ## Feedback
 
-Questions, ideas and bugs: [open an issue](https://github.com/wilsonneto-swe/plain-deck-obsidian/issues). The
-plugin is developed together with its tests in a separate repository and exported here for each release, so a
-pull request is welcome and ships with the next version.
+**What would make you switch from your current flashcard plugin?** Tell us in
+[Discussions](https://github.com/wilsonneto-swe/plain-deck-obsidian/discussions), where questions and ideas are
+welcome too.
+
+Found a bug? [Open an issue](https://github.com/wilsonneto-swe/plain-deck-obsidian/issues/new/choose). The plugin
+is developed together with its tests in a separate repository and exported here for each release, so a pull
+request is welcome and ships with the next version: [CONTRIBUTING.md](CONTRIBUTING.md) explains how.
 
 ## License
 
