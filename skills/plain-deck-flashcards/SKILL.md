@@ -1,6 +1,6 @@
 ---
 name: plain-deck-flashcards
-description: Writes and edits spaced-repetition flashcards for Plain Deck, the free plain-text flashcard app (Obsidian plugin, desktop and web). A deck is one Markdown note named "<Topic>.cards.md"; every "## " heading is a card's question, the lines under it are the answer, and a line holding only "?" splits a longer question from its answer. Review lines (the <!-- srs ... --> comments) belong to the app and are never written by hand. A bundled checker lists the cards and catches mistakes. Use when the user asks for flashcards, a deck, study or review cards, Anki-style cards or spaced-repetition material; wants notes, a document, a lecture, a chapter, a vocabulary list or facts turned into cards for Plain Deck or Obsidian; or wants an existing .cards.md deck checked, extended or fixed.
+description: Writes and edits spaced-repetition flashcards for Plain Deck, the free plain-text flashcard app (Obsidian plugin, desktop and web). A deck is one Markdown note named "Topic.cards.md"; every "## " heading is a card's question, the lines under it are the answer, and a line holding only "?" splits a longer question from its answer. Review lines (the HTML comments that start with "srs:") belong to the app and are never written by hand. A bundled checker lists the cards and catches mistakes. Use when the user asks for flashcards, a deck, study or review cards, Anki-style cards or spaced-repetition material; wants notes, a document, a lecture, a chapter, a vocabulary list or facts turned into cards for Plain Deck or Obsidian; or wants an existing .cards.md deck checked, extended or fixed.
 ---
 
 # Plain Deck flashcards
@@ -134,8 +134,9 @@ The file holds the user's study history. Keep it intact:
 - **Never write, change, copy or reorder review lines** (`<!-- srs: ... -->`). Don't invent them for new
   cards, and don't copy one along with a card you use as a template.
 - **Edit in place**: add cards at the end (or after a related card), fix the text of a question or an
-  answer, delete a card from its `## ` heading to the line before the next heading. Do not rewrite the
-  whole file from memory: that is how review lines get lost.
+  answer, delete a card from its `## ` heading to the line before the next `## ` or `# ` heading (or to the
+  end of the file): its `###` subsections go with it, and headings inside code blocks don't count. Do not
+  rewrite the whole file from memory: that is how review lines get lost.
 - **Move a card whole**: its heading, its review line and its answer together.
 - **Rewording a question keeps its progress** (the review line stays under it). Change the meaning of a
   card only by deleting it and adding a new one.

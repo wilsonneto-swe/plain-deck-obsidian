@@ -457,8 +457,22 @@ function parseArgs(argv) {
 	};
 }
 var DECK = /\.cards\.md$/i;
+/** A folder that cannot be listed: reported with exit status 2, as an unreadable file is. */
+var Unreadable = class extends Error {
+	path;
+	constructor(path, cause) {
+		super(cause instanceof Error ? cause.message : String(cause));
+		this.path = path;
+	}
+};
 function walk(dir, out) {
-	const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+	let listed;
+	try {
+		listed = readdirSync(dir, { withFileTypes: true });
+	} catch (e) {
+		throw new Unreadable(dir, e);
+	}
+	const entries = listed.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
 	for (const entry of entries) {
 		if (entry.name.startsWith(".") || entry.name === "node_modules") continue;
 		const p = join(dir, entry.name);
@@ -557,7 +571,13 @@ function main(argv) {
 			continue;
 		}
 		const found = [];
-		walk(p, found);
+		try {
+			walk(p, found);
+		} catch (e) {
+			if (!(e instanceof Unreadable)) throw e;
+			printError(`check-deck: ${e.path}: cannot be read (${e.message})`);
+			return 2;
+		}
 		if (found.length === 0) notes.push(`${p}: no *.cards.md file in this folder (a deck's file name must end in .cards.md)`);
 		files.push(...found);
 	}
