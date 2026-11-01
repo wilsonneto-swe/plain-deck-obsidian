@@ -82,6 +82,30 @@ In Settings > Plain Deck, or with the Settings button in the decks view:
 - **Desired retention** (90%), **new cards per deck** in a session (20), **maximum interval** (100 years),
   **learning steps** (1m 10m), **relearning steps** (10m), and the hour **the next day starts** (4:00).
 
+## Example decks
+
+The [`examples`](examples) folder has decks to try: copy one into your vault and open the Plain Deck view.
+
+- [Getting started](examples/Getting%20started.cards.md): the format, explained by a deck (the same deck the
+  plugin offers to add when the vault has none).
+- [DDIA - Sharding](examples/DDIA%20-%20Sharding.cards.md): a study deck of 59 cards from Chapter 7 of
+  *Designing Data-Intensive Applications* (2nd edition), grouped by `# ` headings in the chapter's order.
+
+## For AI agents
+
+The [`skills/plain-deck-flashcards`](skills/plain-deck-flashcards) folder is an agent skill: it teaches an AI agent
+(Claude Code, the Claude apps, or any agent that reads instructions) to write decks in this format, from your notes,
+a document or a vocabulary list: one fact per card, good questions, the `?` split, and never touching the review
+lines of a deck you already study. Its checker, `scripts/check-deck.mjs` (Node 18 or later, nothing to install),
+reads a deck exactly as Plain Deck does and reports what would go wrong:
+
+```
+node skills/plain-deck-flashcards/scripts/check-deck.mjs "/path/to/vault/HTTP caching.cards.md"
+```
+
+Installing it is one copy, for example into `~/.claude/skills/` for Claude Code: see
+[skills/README.md](skills/README.md).
+
 ## Installation
 
 - **From Community plugins** (once Plain Deck is listed in the directory): Settings > Community plugins >
