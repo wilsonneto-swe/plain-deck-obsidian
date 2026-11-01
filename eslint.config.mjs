@@ -8,7 +8,9 @@ export default defineConfig([
   {
     languageOptions: {
       parserOptions: {
-        projectService: { allowDefaultProject: ['eslint.config.mjs'] },
+        // the agent skill's checker is linted too, as the review sees it: a command-line script for Node, so its
+        // Node built-ins are warnings here (it never runs inside Obsidian)
+        projectService: { allowDefaultProject: ['eslint.config.mjs', 'skills/*/scripts/*.mjs'] },
       },
     },
   },
