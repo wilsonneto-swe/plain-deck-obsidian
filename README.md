@@ -82,6 +82,15 @@ In Settings > Plain Deck, or with the Settings button in the decks view:
 - **Desired retention** (90%), **new cards per deck** in a session (20), **maximum interval** (100 years),
   **learning steps** (1m 10m), **relearning steps** (10m), and the hour **the next day starts** (4:00).
 
+## Example decks
+
+The [`examples`](examples) folder has decks to try: copy one into your vault and open the Plain Deck view.
+
+- [Getting started](examples/Getting%20started.cards.md): the format, explained by a deck (the same deck the
+  plugin offers to add when the vault has none).
+- [DDIA - Sharding](examples/DDIA%20-%20Sharding.cards.md): a study deck of 57 cards from Chapter 7 of
+  *Designing Data-Intensive Applications* (2nd edition), grouped by `# ` headings in the chapter's order.
+
 ## For AI agents
 
 The [`skills/plain-deck-flashcards`](skills/plain-deck-flashcards) folder is an agent skill: it teaches an AI agent

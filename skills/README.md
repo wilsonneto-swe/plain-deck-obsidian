@@ -12,7 +12,7 @@ the desktop app and the web app, and read as ordinary notes everywhere else.
 plain-deck-flashcards/
   SKILL.md                the instructions the agent reads (the format, the workflow, what makes a good card)
   scripts/check-deck.mjs  the checker: lists a deck's cards and reports mistakes (one file, Node >= 18, no dependencies)
-  examples/               two decks: http-caching.cards.md and portuguese-verbs.cards.md
+  examples/               three decks: http-caching.cards.md, portuguese-verbs.cards.md and ddia-sharding.cards.md
 ```
 
 `check-deck.mjs` is built from the apps' own deck reader (`@plaindeck/core/format`, its `lintDeck`), so it

@@ -53,9 +53,11 @@ PD="<skill folder>/scripts/check-deck.mjs"; node "${PD:?}" "/path/to/vault/Study
 OK: 1 deck, 3 cards, no errors, no warnings.
 ```
 
-Two complete decks are in `examples/`: `http-caching.cards.md` (front matter, a description, a code
-question split by `?`, answers with a reason after them) and `portuguese-verbs.cards.md` (vocabulary in
-both directions, a fill-in-the-gap written as a question).
+Three complete decks are in `examples/`: `http-caching.cards.md` (front matter, a description, a code
+question split by `?`, answers with a reason after them), `portuguese-verbs.cards.md` (vocabulary in
+both directions, a fill-in-the-gap written as a question) and `ddia-sharding.cards.md` (a book chapter
+turned into 57 cards: `# ` headings group them in the chapter's order, each card asks one thing, the
+answer comes first and its reason after).
 
 ## The format
 
