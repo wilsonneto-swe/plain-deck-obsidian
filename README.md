@@ -110,6 +110,8 @@ The [`examples`](examples) folder has decks to try: copy one into your vault and
   plugin offers to add when the vault has none).
 - [DDIA - Sharding](examples/DDIA%20-%20Sharding.cards.md): a study deck of 59 cards from Chapter 7 of
   *Designing Data-Intensive Applications* (2nd edition), grouped by `# ` headings in the chapter's order.
+- [Git basics](examples/Git%20basics.cards.md): 20 cards on everyday Git (saving changes, branches, remotes and
+  undoing things), one fact per card, with a code card split by `?`.
 
 ## For AI agents
 
