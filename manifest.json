@@ -6,5 +6,6 @@
   "description": "Study flashcards written in your notes, with spaced repetition (FSRS): each level-2 heading in a .cards.md note is a card, and each review is saved in that note, so your progress syncs with the vault.",
   "author": "Wilson Neto",
   "authorUrl": "https://github.com/wilsonneto-swe",
+  "fundingUrl": "https://github.com/sponsors/wilsonneto-swe",
   "isDesktopOnly": false
 }
