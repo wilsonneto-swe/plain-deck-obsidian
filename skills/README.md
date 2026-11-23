@@ -35,7 +35,19 @@ On an older Claude Code, add the marketplace first, then install the plugin from
 /plugin install plain-deck@plain-deck
 ```
 
-From a terminal, the same is `claude plugin install plain-deck --marketplace wilsonneto-swe/plain-deck-obsidian`.
+From a terminal, without starting a session, the one-step form needs Claude Code 2.1.292 or later:
+
+```
+claude plugin install plain-deck --marketplace wilsonneto-swe/plain-deck-obsidian
+```
+
+On an earlier version, run the two steps instead:
+
+```
+claude plugin marketplace add wilsonneto-swe/plain-deck-obsidian
+claude plugin install plain-deck@plain-deck
+```
+
 The skill then appears as `plain-deck:plain-deck-flashcards`. For later changes to the skill, run
 `claude plugin update plain-deck@plain-deck` and restart Claude Code, or turn on auto-update for the
 `plain-deck` marketplace in `/plugin`.
