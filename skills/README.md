@@ -21,7 +21,40 @@ itself is in the root README ([The file format](../README.md#writing-cards)).
 
 ### Install in Claude Code
 
-Claude Code loads skills from `~/.claude/skills/` (every project) and from `.claude/skills/` inside a
+This repository is also a Claude Code plugin marketplace (`.claude-plugin/`), so the skill installs as a
+plugin straight from GitHub, with nothing to copy. In Claude Code (2.1.275 or later):
+
+```
+/plugin install plain-deck --marketplace wilsonneto-swe/plain-deck-obsidian
+```
+
+On an older Claude Code, add the marketplace first, then install the plugin from it:
+
+```
+/plugin marketplace add wilsonneto-swe/plain-deck-obsidian
+/plugin install plain-deck@plain-deck
+```
+
+From a terminal, without starting a session, the one-step form needs Claude Code 2.1.292 or later:
+
+```
+claude plugin install plain-deck --marketplace wilsonneto-swe/plain-deck-obsidian
+```
+
+On an earlier version, run the two steps instead:
+
+```
+claude plugin marketplace add wilsonneto-swe/plain-deck-obsidian
+claude plugin install plain-deck@plain-deck
+```
+
+The skill then appears as `plain-deck:plain-deck-flashcards`. For later changes to the skill, run
+`claude plugin update plain-deck@plain-deck` and restart Claude Code, or turn on auto-update for the
+`plain-deck` marketplace in `/plugin`.
+
+#### Or copy the folder
+
+Claude Code also loads skills from `~/.claude/skills/` (every project) and from `.claude/skills/` inside a
 project (that project only; for decks, your Obsidian vault is a good place). Copy the folder there, or
 symlink it to keep it in step with this repository:
 

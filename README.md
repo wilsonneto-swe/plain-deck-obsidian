@@ -129,7 +129,13 @@ reads a deck exactly as Plain Deck does and reports what would go wrong:
 node skills/plain-deck-flashcards/scripts/check-deck.mjs "/path/to/vault/HTTP caching.cards.md"
 ```
 
-Installing it is one copy, for example into `~/.claude/skills/` for Claude Code: see
+This repository is a Claude Code plugin marketplace, so in Claude Code the skill installs in one step:
+
+```
+/plugin install plain-deck --marketplace wilsonneto-swe/plain-deck-obsidian
+```
+
+For older Claude Code versions, the Claude apps and other agents (one copy of the folder), see
 [skills/README.md](skills/README.md).
 
 ## Installation

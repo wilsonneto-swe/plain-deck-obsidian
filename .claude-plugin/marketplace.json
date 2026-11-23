@@ -1,0 +1,15 @@
+{
+  "name": "plain-deck",
+  "owner": {
+    "name": "Wilson Neto",
+    "url": "https://github.com/wilsonneto-swe"
+  },
+  "description": "Plain Deck's agent skill for Claude Code: write flashcard decks as plain Markdown notes",
+  "plugins": [
+    {
+      "name": "plain-deck",
+      "description": "Write spaced-repetition flashcards as Markdown decks (.cards.md) that open in Plain Deck and Obsidian",
+      "source": "./"
+    }
+  ]
+}
