@@ -1,0 +1,12 @@
+{
+  "name": "plain-deck",
+  "description": "Write spaced-repetition flashcards as Markdown decks (.cards.md) that open in Plain Deck and Obsidian",
+  "author": {
+    "name": "Wilson Neto",
+    "url": "https://github.com/wilsonneto-swe"
+  },
+  "homepage": "https://github.com/wilsonneto-swe/plain-deck-obsidian",
+  "repository": "https://github.com/wilsonneto-swe/plain-deck-obsidian",
+  "license": "MIT",
+  "keywords": ["flashcards", "spaced-repetition", "obsidian", "markdown", "study"]
+}
