@@ -36,8 +36,9 @@ On an older Claude Code, add the marketplace first, then install the plugin from
 ```
 
 From a terminal, the same is `claude plugin install plain-deck --marketplace wilsonneto-swe/plain-deck-obsidian`.
-The skill then appears as `plain-deck:plain-deck-flashcards`. `/plugin marketplace update plain-deck` brings
-in later changes to the skill.
+The skill then appears as `plain-deck:plain-deck-flashcards`. For later changes to the skill, run
+`claude plugin update plain-deck@plain-deck` and restart Claude Code, or turn on auto-update for the
+`plain-deck` marketplace in `/plugin`.
 
 #### Or copy the folder
 
